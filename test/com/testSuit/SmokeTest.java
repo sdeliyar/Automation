@@ -35,7 +35,6 @@ public class SmokeTest extends BasePage {
 	ExtendPage extendPage = new ExtendPage();
 	DiscountPage discountPage = new DiscountPage();
 
-	@Ignore
 	@Test
 	public void extendEXlocker() throws Exception {
 
@@ -253,7 +252,7 @@ public class SmokeTest extends BasePage {
 		}
 
 	}
-	
+
 	@Ignore
 	@Test
 	public void RentAllSingleLocker() throws Exception {
@@ -402,7 +401,7 @@ public class SmokeTest extends BasePage {
 		}
 
 	}
-	
+
 	@Ignore
 	@Test
 	public void Rent500LOcker() throws Exception {
@@ -504,17 +503,17 @@ public class SmokeTest extends BasePage {
 		}
 
 	}
-	
+
 	@Test
 	public void IncreasedKioskAdminUser() throws Exception {
-		
+
 		wp.gotoWelcome();
 		// start WPE listen socketID
 
 		wp.logInAdmin();
 		adp.adminLogin("4567", "4321");
-		
+
 		adp.createAdminUser(200);
-		
+
 	}
 }
