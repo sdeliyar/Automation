@@ -39,7 +39,7 @@ public class SmokeTest extends BasePage {
 	public void extendEXlocker() throws Exception {
 
 		// start WPE listen socketID
-		pt2.listenSocketID("paypros");
+		pt2.listenSocketID("ddd");
 
 		wp.gotoWelcome();
 		wp.clickHomePage();
