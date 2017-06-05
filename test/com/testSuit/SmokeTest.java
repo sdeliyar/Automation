@@ -34,7 +34,7 @@ public class SmokeTest extends BasePage {
 	SocktWPE pt2 = new SocktWPE();
 	ExtendPage extendPage = new ExtendPage();
 	DiscountPage discountPage = new DiscountPage();
-
+	@Ignore
 	@Test
 	public void extendEXlocker() throws Exception {
 
@@ -504,6 +504,7 @@ public class SmokeTest extends BasePage {
 
 	}
 
+	@Ignore
 	@Test
 	public void IncreasedKioskAdminUser() throws Exception {
 
