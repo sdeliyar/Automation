@@ -34,7 +34,8 @@ public class SmokeTest extends BasePage {
 	SocktWPE pt2 = new SocktWPE();
 	ExtendPage extendPage = new ExtendPage();
 	DiscountPage discountPage = new DiscountPage();
-	
+
+	@Ignore
 	@Test
 	public void extendEXlocker() throws Exception {
 
@@ -114,28 +115,29 @@ public class SmokeTest extends BasePage {
 
 	}
 
-	@Ignore
+	
 	@Test
 	public void MultiPLSTest() throws Exception {
 		// issue coupon and rent PLS
 		wp.gotoWelcome();
-		// wp.logInAdmin();
-		// adp.adminLogin("2222", "2222");
-		// adp.issueCoupon("5");
-		// adp.logOutAdmin();
-		// ul.customWait(1);
-		// wp.clickHomePage();
-		// plp.goPLSLocker();
-		// pp.redeemCoupon(SQL_JDBC.coupon("3892"));
-		// plp.enterCustomerID("1111114", "1111");
-		// endp.finish();
-		// // sign admin, end both
-		// ul.customWait(1);
-		// wp.logInAdmin();
-		// adp.adminLogin("2222", "2222");
-		// adp.getLockerStatus();
-		// adp.endRental(null);
-		// adp.logOutAdmin();
+//		wp.logInAdmin();
+//		adp.adminLogin("2222", "4321");
+//		adp.issueCoupon("5");
+//		adp.logOutAdmin();
+//		ul.customWait(1);
+//		wp.clickHomePage();
+//		plp.goPLSLocker();
+//		exp.finishExtras();
+//		pp.redeemCoupon(SQL_JDBC.coupon("3873"));
+//		plp.enterCustomerID("1111111", "1111");
+//		endp.finish();
+//		// sign admin, end both
+//		ul.customWait(1);
+//		wp.logInAdmin();
+//		adp.adminLogin("2222", "4321");
+//		adp.getLockerStatus();
+//		adp.endRental(null);
+//		adp.logOutAdmin();
 		// move
 		for (int j = 0; j < 10; j++) {
 
@@ -145,14 +147,14 @@ public class SmokeTest extends BasePage {
 				ul.customWait(1);
 				wp.clickHomePage();
 				plp.goMovePLS();
-				plp.enterCustomerID("1111114", "1111");
+				plp.enterCustomerID("1111111", "1111");
 				pendp.confirmEndPLS();
 				endp.finish();
 			}
 			// sign admin, end both rental
 			ul.customWait(1);
 			wp.logInAdmin();
-			adp.adminLogin("2222", "2222");
+			adp.adminLogin("2222", "4321");
 			adp.getLockerStatus();
 			adp.endRental(null);
 			adp.logOutAdmin();
@@ -161,14 +163,14 @@ public class SmokeTest extends BasePage {
 			ul.customWait(1);
 			wp.clickHomePage();
 			plp.goMovePLS();
-			plp.enterCustomerID("1111114", "1111");
+			plp.enterCustomerID("1111111", "1111");
 			pendp.confirmEndPLS();
 			endp.finish();
 
 			// sign admin, end one
 			ul.customWait(1);
 			wp.logInAdmin();
-			adp.adminLogin("2222", "2222");
+			adp.adminLogin("2222", "4321");
 			adp.getLockerStatus();
 			adp.endRental(null);
 			adp.logOutAdmin();

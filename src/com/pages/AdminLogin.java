@@ -134,7 +134,7 @@ public class AdminLogin extends BasePage {
 		ul.fluentWait(By.id("bsts")).click();
 
 		ul.waitForConditionVisibility(
-				By.xpath(".//*[@id='page']/div/div/div[4]/div[1]/div[2]/div[10]/div[4]/div[1]/u/a")).click();
+				By.xpath(".//*[@id='page']/div/div/div[4]/div[1]/div[2]/div[7]/div[4]/div[1]/u/a")).click();
 
 		currentLock = ul
 				.waitForConditionVisibility(By.cssSelector("textarea[data-bind='textInput: lockerlistitems()']"))
