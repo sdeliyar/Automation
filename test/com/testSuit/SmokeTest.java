@@ -77,6 +77,7 @@ public class SmokeTest extends BasePage {
 		wp.gotoWelcome();
 		wp.clickHomePage();
 		plp.goPLSLocker();
+		exp.finishExtras();
 		// get socket
 		pt2.setSocketID("paypros");
 		pt2.playPacket_Paypros("paypros");
@@ -91,8 +92,52 @@ public class SmokeTest extends BasePage {
 
 			wp.clickHomePage();
 			plp.goPLSLocker();
+			exp.finishExtras();
 			pt2.playPacket_Paypros("paypros");
 			plp.enterCustomerID(Integer.toString(i), "1111");
+			endp.finish();
+			ul.customWait(2);
+		}
+	}
+	
+	@Test
+	public void rentSignleEntry() throws Exception {
+		// paypros and rent PLS
+
+		// start WPE listen socketID
+		pt2.listenSocketID("paypros");
+
+		wp.gotoWelcome();
+		wp.clickHomePage();
+		plp.goSingleLocker();
+		lp.selectLockerSize("Standard");
+		exp.finishExtras();
+		// get socket
+		pt2.setSocketID("paypros");
+		pt2.playPacket_Paypros("paypros");
+		// cutomer ID
+		pcp.passCode("1111");
+		endp.finish();
+		ul.customWait(2);
+
+		for (int i = 2; i < 21; i++) {
+
+			// rent pls
+
+			wp.clickHomePage();
+			plp.goSingleLocker();
+			if (i<=12) {
+				lp.selectLockerSize("Standard");
+			}
+			else if (i > 12 && i < 17  ) {
+				lp.selectLockerSize("Large");
+			}
+			else {
+				lp.selectLockerSize("Jumbo");
+			}
+			exp.finishExtras();
+			pt2.playPacket_Paypros("paypros");
+			pcp.passCode("1111");
 			endp.finish();
 			ul.customWait(2);
 		}
@@ -115,7 +160,7 @@ public class SmokeTest extends BasePage {
 
 	}
 
-	
+	@Ignore
 	@Test
 	public void MultiPLSTest() throws Exception {
 		// issue coupon and rent PLS
