@@ -1,15 +1,18 @@
 package com.pages;
 
 import org.openqa.selenium.By;
-import org.openqa.selenium.interactions.Actions;
+
+import library.JavaPropertiesManager;
 
 public class PasscodePage extends BasePage {
 
-	public Actions action;
+	private String passcode;
 
-	public void passCode(String passcode) throws Exception {
+	public void passCode() throws Exception {
+		// test Data
+		property = new JavaPropertiesManager("resources/testData.properties");
+		passcode = property.readProperty("PassCode");
 
-		action = new Actions(driver);
 		String[] eachPass = passcode.split("");
 
 		for (int j = 0; j < 2; j++) {
@@ -17,11 +20,13 @@ public class PasscodePage extends BasePage {
 			for (int i = 0; i < 4; i++) {
 
 				String passElem = "div[id='b" + eachPass[i] + "']";
-				action.click(ul.fluentWait(By.cssSelector(passElem))).build().perform();
+				ul.highlightElement(By.cssSelector(passElem));
+				ul.fluentWait(By.cssSelector(passElem)).click();
 
 			}
-			action.click(ul.fluentWait(By.cssSelector("div[class='gpenterbtnblink']"))).build().perform();
-			ul.customWait(2);
+			ul.highlightElement(By.cssSelector("div[class='gpenterbtnblink']"));
+			ul.fluentWait(By.cssSelector("div[class='gpenterbtnblink']")).click();
+			ul.customWait(1);
 		}
 
 	}

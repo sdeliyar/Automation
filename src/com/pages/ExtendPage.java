@@ -1,15 +1,18 @@
 package com.pages;
 
+import java.awt.List;
+
 import org.openqa.selenium.By;
 
 public class ExtendPage extends BasePage {
-
+	
+	List lockerNumbers = new List();
 	public void findExpireLocker(int lockerNum, String adminpass) throws Exception {
 		String info = null;
 		
 		
 		
-		String adminP = Integer.toString(lockerNum);
+		String adminP = getLockerNumber(lockerNum);
 		String adminPs = adminpass;
 
 		for (int i = 0; i < 2; i++) {
@@ -38,7 +41,19 @@ public class ExtendPage extends BasePage {
 		ul.customWait(3);
 
 	}
-	
+	public void setLockerNumber(String Lockers) {
+		String [] eachlocker = Lockers.split(",");
+		for (int i = 0; i < eachlocker.length; i++) {
+			this.lockerNumbers.add(eachlocker[i]);
+		}
+		
+	}
+	public String getLockerNumber(int index) {
+		
+		
+		return lockerNumbers.getItem(index);
+		
+	}
 	
 	public void ExtendHours() {
 		

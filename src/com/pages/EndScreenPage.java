@@ -36,6 +36,8 @@ public class EndScreenPage extends BasePage {
 				Boolean isPresent = 	driver.findElements(By.id("finishbtn")).size() > 0;
 
 				if(isPresent.equals(true)) {
+					ul.highlightElement(ul.waitForConditionVisibility(By.id("finishbtn")));
+				
 					ul.waitForConditionVisibility(By.id("finishbtn")).click();					
 				}
 				else {

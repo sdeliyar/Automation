@@ -28,6 +28,7 @@ import org.openqa.selenium.firefox.internal.ProfilesIni;
 import org.openqa.selenium.ie.InternetExplorerDriver;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.internal.WrapsDriver;
+import org.openqa.selenium.remote.Augmenter;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -36,10 +37,13 @@ import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.Wait;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.annotations.Test;
+import org.testng.log4testng.Logger;
 
 import com.google.common.base.Function;
 
 public class UtilityLibrary {
+	final static Logger logger = Logger.getLogger(UtilityLibrary.class);
+	public boolean isRemote = false;
 	private WebDriver driver;
 	private boolean isDemoMode = false;
 
@@ -59,10 +63,11 @@ public class UtilityLibrary {
 				driver = new FirefoxDriver();
 			} else if (browserName.equals("ie")) {
 				System.setProperty("webdriver.ie.driver", "C:/workspace/resource/IEDriverServer.exe");
-				driver = new InternetExplorerDriver();
 				DesiredCapabilities capabilities = DesiredCapabilities.internetExplorer();
+				capabilities.setCapability("ignoreZoomSetting", true);
 				capabilities.setCapability(InternetExplorerDriver.IE_ENSURE_CLEAN_SESSION, true);
-
+				
+				driver = new InternetExplorerDriver(capabilities);
 			} else if (browserName.equals("chrome")) {
 				System.setProperty("webdriver.chrome.driver", "C://Trianing2016//chromedriver.exe");
 				driver = new ChromeDriver();
@@ -210,16 +215,20 @@ public class UtilityLibrary {
 		}
 		return targetElem;
 	}
-
-	public String takeScreenShot(String screenShotName, String saveLocationPath) {
+	public String captureScreenshot(String screenshotFileName, String filePathToSave) {
+		String finalImage = null;
 		try {
-			File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
-			FileUtils.copyFile(screenshot, new File(saveLocationPath + screenShotName + getCurrentTime() + ".png"));
-
+			if (isRemote == true) {
+				driver = new Augmenter().augment(driver);
+			}
+			String tempName = filePathToSave + screenshotFileName + getCurrentTime() + ".png";
+			File srcFile = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+			FileUtils.copyFile(srcFile, new File(tempName));
+			finalImage = tempName;
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error(e);
 		}
-		return saveLocationPath + screenShotName + getCurrentTime() + ".png";
+		return finalImage;
 	}
 
 	public String getCurrentTime() {
@@ -452,9 +461,14 @@ public class UtilityLibrary {
 				for (int i = 0; i < 5; i++) {
 					WrapsDriver wrappedElement = (WrapsDriver) element;
 					JavascriptExecutor driver = (JavascriptExecutor) wrappedElement.getWrappedDriver();
-					driver.executeScript("arguments[0].setAttribute('style',arguments[1]);", element,
-							"color: green; border: 2px solid yellow;");
-					driver.executeScript("arguements[0].setAttribute('style',arguments[1]);", element, "");
+					driver.executeScript("arguments[0].setAttribute('style', 'background: yellow; border: 2px solid red;');", element);
+					driver.executeScript("arguments[0].setAttribute('style','border: solid 2px green');", element);
+
+					
+					
+//					driver.executeScript("arguments[0].setAttribute('style',arguments[1]);", element,
+//							"color: green; border: 2px solid yellow;");
+//					driver.executeScript("arguements[0].setAttribute('style',arguments[1]);", element, "");
 
 				}
 			} catch (Exception e) {
@@ -463,6 +477,34 @@ public class UtilityLibrary {
 				e.printStackTrace();
 			}
 
+		}
+	}
+	
+	/***
+	 * This method highlights web-elements using javascript executor
+	 * 
+	 * @param by
+	 */
+	public void highlightElement(By by) {
+		if (isDemoMode == true) {
+			try {
+				WebElement temp = driver.findElement(by);
+				WrapsDriver wrappedElement = (WrapsDriver) temp;
+				JavascriptExecutor js = (JavascriptExecutor) wrappedElement.getWrappedDriver();
+				customWait(1);
+				for (int i = 0; i < 5; i++) {
+				js.executeScript("arguments[0].setAttribute('style', 'background: yellow; border: 2px solid red;');", temp);
+				js.executeScript("arguments[0].setAttribute('style','border: solid 2px green');", temp); 
+				  
+				}
+//				js.executeScript("arguments[0].setAttribute('style', arguments[1]);", temp,
+//						"color: red; border: 2px solid yellow;");
+//				customWait(1);
+//				js.executeScript("arguments[0].setAttribute('style', arguments[1]);", temp, "");
+
+			} catch (Exception e) {
+				logger.error(e);
+			}
 		}
 	}
 
@@ -502,6 +544,17 @@ public class UtilityLibrary {
 	        flag = false;
 	    }
 	    return flag;
+	}
+	
+	public void deleteFile(String batUrl) {
+		try {
+			File f = new File(batUrl);
+			
+			f.delete();
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+	
 	}
 	
 	

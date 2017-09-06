@@ -4,59 +4,82 @@ import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.KeyEvent;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
 import org.sikuli.script.Screen;
+import org.testng.Assert;
+import org.xml.sax.SAXException;
+
+import com.practice.ReadXMLfiles;
 
 public class AdminLogin extends BasePage {
 	private Screen screen = new Screen();
 	public String currentLock = null;
 
-	public void adminLogin(String adminpin, String adminpass) throws Exception {
+	AdminMenu adminMenu = new AdminMenu();
+	ReadXMLfiles readXml = new ReadXMLfiles();
+
+	public void adminLogin(String type) throws Exception {
 		String info = null;
 
-		String adminP = adminpin;
-		String adminPs = adminpass;
+		// attendants user&pass
+		String adminP = readXml.fromAttendantsXML(type, "user");
+
+		String adminPs = readXml.fromAttendantsXML(type, "pass");
 
 		for (int i = 0; i < 2; i++) {
 			if (i == 0) {
 				info = adminP;
-				driver.findElement(By.cssSelector("input[class='gppin']")).click();
 
-				driver.findElement(By.cssSelector("div[id='bc']")).click();
+				ul.highlightElement(driver.findElement(By.cssSelector("input[class='gppin']")));
+
+				ul.fluentWait(By.cssSelector("input[class='gppin']")).click();
+
+				ul.fluentWait(By.cssSelector("div[id='bc']")).click();
 
 			} else if (i == 1) {
 				info = adminPs;
-				driver.findElement(By.cssSelector("input[class='gppass']")).click();
+				ul.highlightElement(driver.findElement(By.cssSelector("input[class='gppass']")));
 
-				driver.findElement(By.cssSelector("div[id='bc']")).click();
+				ul.fluentWait(By.cssSelector("input[class='gppass']")).click();
+
+				ul.fluentWait(By.cssSelector("div[id='bc']")).click();
 
 			}
 			String[] separateInfo = info.split("");
 			for (int j = 0; j < separateInfo.length; j++) {
+
+				ul.highlightElement(driver.findElement(By.cssSelector("div[id='b" + separateInfo[j] + "']")));
+
 				driver.findElement(By.cssSelector("div[id='b" + separateInfo[j] + "']")).click();
 
 			}
 
 		}
+
+		ul.highlightElement(driver.findElement(By.cssSelector("div[id='gpshiftleftsi']")));
+
 		driver.findElement(By.cssSelector("div[id='gpshiftleftsi']")).click();
 
 		ul.customWait(3);
 
 	}
 
-	public void issueCoupon(String couponAmount) throws Exception {
-		ul.waitForConditionPresense(By.cssSelector("div[id='bcpn']")).click();
+	public void issueCoupon(int couponindex) throws Exception {
+
+		ul.highlightElement(ul.fluentWait(By.cssSelector(".//select[@id='val']/option[" + couponindex + "]")));
+
+		ul.fluentWait(By.xpath(".//select[@id='val']/option[" + couponindex + "]")).click();
 
 		ul.customWait(1);
 
-		ul.fluentWait(By.cssSelector("div[id='bicp']")).click();
-
-		ul.customWait(1);
-
-		ul.fluentWait(By.cssSelector("select[id='val']>option[value='$" + couponAmount + "']")).click();
-
-		ul.customWait(1);
+		ul.highlightElement(ul.fluentWait(By.className("gpbcon")));
 
 		ul.fluentWait(By.className("gpbcon")).click();
 
@@ -79,11 +102,127 @@ public class AdminLogin extends BasePage {
 
 	}
 
-	public void endRental(String lockerID) throws Exception {
+	public void isMaxProEqMaxCoup() throws Exception {
+		WebElement latestOne = null;
+		int MaxCouponInlist = 0;
 
-		ul.fluentWait(By.id("bmrt")).click();
+		int MaxCouponInXML = 0;
 
-		ul.fluentWait(By.id("bert")).click();
+		int maxOvertimeCharge = Integer.parseInt(readXml.fromPricingXML("MaxOvertimeCharge"));
+
+		int minXml = Integer.parseInt(readXml.fromSetUpXML("", "min"));
+
+		int interXml = Integer.parseInt(readXml.fromSetUpXML("", "interval"));
+
+		int maxproductPrice = readXml.fromPricingMaxPrice();
+		if (readXml.fromSetUpXML("", "rentaloption").equalsIgnoreCase("daily")) {
+			MaxCouponInXML = maxproductPrice;
+		} else {
+			if (maxOvertimeCharge > maxproductPrice) {
+				MaxCouponInXML = maxOvertimeCharge;
+			} else if (maxOvertimeCharge < maxproductPrice) {
+				MaxCouponInXML = maxproductPrice;
+			} else {
+				MaxCouponInXML = maxOvertimeCharge;
+			}
+		}
+
+		int i = 1;
+		int expectedMaxC = 0;
+		while (minXml + interXml * i <= MaxCouponInXML) {
+			if (minXml + interXml * i == MaxCouponInXML) {
+				expectedMaxC = MaxCouponInXML;
+			} else {
+				expectedMaxC = minXml + interXml * i;
+			}
+
+			++i;
+		}
+		ul.highlightElement(By.xpath(".//select[@id='val']"));
+		ul.fluentWait(By.xpath(".//select[@id='val']")).click();
+		List<WebElement> couponList = driver.findElements(By.xpath(".//select[@id='val']/option"));
+
+		for (WebElement tempList : couponList) {
+
+			MaxCouponInlist = Integer.parseInt(tempList.getText().replace("$", ""));
+			latestOne = tempList;
+		}
+		latestOne.click();
+		Assert.assertEquals(MaxCouponInlist, expectedMaxC);
+
+	}
+
+	public void verifyCouponInterval()
+			throws NumberFormatException, ParserConfigurationException, SAXException, IOException, Exception {
+		ul.highlightElement(By.xpath(".//select[@id='val']"));
+		ul.fluentWait(By.xpath(".//select[@id='val']")).click();
+
+		int interXml = Integer.parseInt(readXml.fromSetUpXML("", "interval"));
+		ul.highlightElement(By.xpath(".//select[@id='val']/option[1]"));
+		int couponListfirst = Integer
+				.parseInt(ul.fluentWait(By.xpath(".//select[@id='val']/option[1]")).getText().replace("$", ""));
+		ul.highlightElement(By.xpath(".//select[@id='val']/option[2]"));
+		int couponListsecond = Integer
+				.parseInt(ul.fluentWait(By.xpath(".//select[@id='val']/option[2]")).getText().replace("$", ""));
+
+		Assert.assertEquals((couponListsecond - couponListfirst), interXml);
+
+	}
+
+	public void verifyAdminUSer() {
+
+		ul.highlightElement(ul.fluentWait(By.cssSelector("div[class='gpdivheader']")));
+
+		Assert.assertEquals(ul.fluentWait(By.cssSelector("div[class='gpdivheader']")).getText(),
+				"Hello An Attendant (Attendant)");
+
+	}
+
+	public void verifyAdminMenuText() throws Exception {
+		List<String> menuItems = Arrays.asList("Manage Lockers", "Locker Service", "Manage Rentals", "Coupons",
+				"Sensors", "Administration");
+
+		for (int i = 0; i < menuItems.size(); i++) {
+
+			if (i == 5) {
+				++i;
+			}
+			ul.highlightElement(
+					ul.fluentWait(By.xpath(".//div[@class='col-md-3'][1]/div[" + (i + 1) + "]/div/div/div")));
+			ul.fluentWait(By.xpath(".//div[@class='col-md-3'][1]/div[" + (i + 1) + "]/div/div/div")).click();
+
+			String menuText = ul.fluentWait(By.xpath(".//div[@class='col-md-3'][1]/div[" + (i + 1) + "]/div/div/div"))
+					.getText();
+			if (i == 6) {
+				--i;
+			}
+			Assert.assertEquals(menuText, menuItems.get(i));
+
+			ul.customWait(1);
+			ul.highlightElement(ul.fluentWait(By.xpath(".//*[@id='page']/div/div/div[3]/div/div/h2/label")));
+
+			String headerText = ul.fluentWait(By.xpath(".//*[@id='page']/div/div/div[3]/div/div/h2/label")).getText();
+			Assert.assertEquals(headerText.replaceAll(" Menu", ""), menuItems.get(i));
+
+		}
+
+		// .//div[@class='col-md-3'][1]/div[1]/div/div/div
+
+		// .//*[@id='page']/div/div/div[3]/div/div/h2/label
+
+	}
+
+	public void confirm() throws Exception {
+
+		ul.fluentWait(By.cssSelector("div[id='con']")).click();
+		ul.customWait(4);
+	}
+
+	public void typeLockers(String lockerID) throws Exception {
+
+		// ul.fluentWait(By.id("bmrt")).click();
+		//
+		// ul.fluentWait(By.id("bert")).click();
 
 		// type Locker id
 
@@ -94,7 +233,7 @@ public class AdminLogin extends BasePage {
 			}
 
 			ul.waitForConditionVisibility(By.cssSelector("div[id='enterbtn']")).click();
-
+			ul.customWait(4);
 		} else {
 			if (currentLock.equalsIgnoreCase("")) {
 
@@ -103,6 +242,9 @@ public class AdminLogin extends BasePage {
 			else if (currentLock.contains(", ")) {
 				String[] doubleLockers = currentLock.split(", ");
 				for (int k = 0; k < doubleLockers.length; k++) {
+					if (k > 0) {
+						ul.fluentWait(By.cssSelector("div[id='bopl']")).click();
+					}
 
 					String[] separateInfo1 = doubleLockers[k].split("");
 					for (int j = 0; j < separateInfo1.length; j++) {
@@ -111,7 +253,7 @@ public class AdminLogin extends BasePage {
 
 					ul.waitForConditionVisibility(By.cssSelector("div[id='enterbtn']")).click();
 					ul.customWait(4);
-					ul.fluentWait(By.id("bert")).click();
+
 				}
 
 			} else {
@@ -121,6 +263,7 @@ public class AdminLogin extends BasePage {
 				}
 
 				ul.waitForConditionVisibility(By.cssSelector("div[id='enterbtn']")).click();
+				ul.customWait(4);
 			}
 
 		}
@@ -128,10 +271,6 @@ public class AdminLogin extends BasePage {
 	}
 
 	public String getLockerStatus() {
-
-		ul.fluentWait(By.id("bmlk")).click();
-
-		ul.fluentWait(By.id("bsts")).click();
 
 		ul.waitForConditionVisibility(
 				By.xpath(".//*[@id='page']/div/div/div[4]/div[1]/div[2]/div[7]/div[4]/div[1]/u/a")).click();
@@ -143,51 +282,48 @@ public class AdminLogin extends BasePage {
 		return currentLock;
 	}
 
-	public void createAdminUser( int userNum) {
+	public void createAdminUser(int userNum) {
 
 		String userFN = null;
 		String userLN = null;
 		String userID = null;
 		String userPS = null;
-		
+
 		ul.fluentWait(By.id("badm")).click();
 
 		ul.fluentWait(By.id("buac")).click();
 
 		// fill user info, maximum userNum times
 		for (int n = 1; n < userNum; n++) {
-			
+
 			if (n <= 50) {
 				userFN = "at" + n;
 				userLN = "at" + n;
 				userID = Integer.toString(5000 + n);
 				userPS = Integer.toString(5000 + n);
-			}
-			else if (50 < n && n <= 100) {
-				
+			} else if (50 < n && n <= 100) {
+
 				userFN = "ca" + n;
 				userLN = "ca" + n;
 				userID = Integer.toString(5000 + n);
 				userPS = Integer.toString(5000 + n);
-					
-			}
-			else if (100 < n && n <= 150) {
+
+			} else if (100 < n && n <= 150) {
 				userFN = "su" + n;
 				userLN = "su" + n;
 				userID = Integer.toString(5000 + n);
 				userPS = Integer.toString(5000 + n);
-				
-			}
-			else  {
+
+			} else {
 				userFN = "ma" + n;
 				userLN = "ma" + n;
 				userID = Integer.toString(5000 + n);
 				userPS = Integer.toString(5000 + n);
-				
+
 			}
-			
+
 			ul.fluentWait(By.id("badd")).click();
-			
+
 			String[] eachString;
 			for (int i = 0; i < 4; i++) {
 				if (i == 0) {
@@ -231,27 +367,20 @@ public class AdminLogin extends BasePage {
 
 			}
 			ul.fluentWait(By.id("userlevelselect")).click();
-			
-			
+
 			if (n <= 50) {
 				ul.fluentWait(By.cssSelector("option[value='Attendant']")).click();
-				
-			}
-			else if (50 < n && n <= 100) {
+
+			} else if (50 < n && n <= 100) {
 				ul.fluentWait(By.cssSelector("option[value='Cashier']")).click();
-				
-			}
-			else if (100 < n && n <= 150) {
+
+			} else if (100 < n && n <= 150) {
 				ul.fluentWait(By.cssSelector("option[value='Supervisor']")).click();
-				
-			}
-			else  {
+
+			} else {
 				ul.fluentWait(By.cssSelector("option[value='Manager']")).click();
-				
+
 			}
-			
-			
-			
 
 			ul.fluentWait(By.xpath(".//div[@class='col-md-6 text-center'][2]/button")).click();
 		}
@@ -259,6 +388,7 @@ public class AdminLogin extends BasePage {
 	}
 
 	public void logOutAdmin() {
+		ul.highlightElement(ul.fluentWait(By.id("blot")));
 
 		ul.fluentWait(By.id("blot")).click();
 	}

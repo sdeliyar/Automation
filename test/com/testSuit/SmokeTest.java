@@ -11,134 +11,174 @@ import com.pages.ExtendPage;
 import com.pages.ExtrasPage;
 import com.pages.LockersPage;
 import com.pages.PasscodePage;
+import com.pages.PaymentPage;
 import com.pages.PlsEndRentalPage;
 import com.pages.PlsPage;
 import com.pages.WelcomePage;
-import com.pages.paymentPage;
 import com.practice.SocktWPE;
 
-import library.SQL_JDBC;
+import library.ReadGPXMLs;
 
 public class SmokeTest extends BasePage {
 
 	BasePage basePage = new BasePage();
-	WelcomePage wp = new WelcomePage();
-	AdminLogin adp = new AdminLogin();
-	LockersPage lp = new LockersPage();
-	paymentPage pp = new paymentPage();
-	ExtrasPage exp = new ExtrasPage();
-	PasscodePage pcp = new PasscodePage();
-	PlsPage plp = new PlsPage();
-	EndScreenPage endp = new EndScreenPage();
-	PlsEndRentalPage pendp = new PlsEndRentalPage();
+	WelcomePage welcomePage = new WelcomePage();
+	AdminLogin adminLogin = new AdminLogin();
+	LockersPage lockersPage = new LockersPage();
+	PaymentPage paymentPage = new PaymentPage();
+	ExtrasPage extrasPage = new ExtrasPage();
+	PasscodePage passcodePage = new PasscodePage();
+	PlsPage plsPage = new PlsPage();
+	EndScreenPage endScreenPage = new EndScreenPage();
+	PlsEndRentalPage plsEndRentalPage = new PlsEndRentalPage();
 	SocktWPE pt2 = new SocktWPE();
 	ExtendPage extendPage = new ExtendPage();
 	DiscountPage discountPage = new DiscountPage();
+	ReadGPXMLs readxmls = new ReadGPXMLs();
 
 	@Ignore
 	@Test
 	public void extendEXlocker() throws Exception {
 
 		// start WPE listen socketID
-		pt2.listenSocketID("ddd");
+		pt2.listenSocketID("");
 
-		wp.gotoWelcome();
-		wp.clickHomePage();
-		plp.goOpenExpireLocker();
+		welcomePage.gotoWelcome();
+		welcomePage.clickHomePage();
+		plsPage.goOpenExpireLocker();
 		extendPage.findExpireLocker(1, "1111");
 		extendPage.ExtendHours();
 
 		// get socket
-		pt2.setSocketID("paypros");
-		pt2.playPacket_Paypros("paypros");
-		endp.finish();
+		pt2.setSocketID(readxmls.setUpXml("", "processor"));
+		pt2.playPacket_Service(readxmls.setUpXml("", "processor"));
+		endScreenPage.finish();
 
 		for (int i = 2; i < 29; i++) {
 			ul.customWait(1);
-			wp.clickHomePage();
-			plp.goOpenExpireLocker();
+			welcomePage.clickHomePage();
+			plsPage.goOpenExpireLocker();
 			extendPage.findExpireLocker(i, "1111");
 			extendPage.ExtendHours();
-			pt2.playPacket_Paypros("paypros");
-			endp.finish();
+			pt2.playPacket_Service(readxmls.setUpXml("", "processor"));
+			endScreenPage.finish();
 
+		}
+
+	}
+
+	@Test
+	public void rentPLSTest() throws Exception {
+		// paypros and rent PLS
+
+		// start WPE listen socketID
+		pt2.listenSocketID("");
+
+		welcomePage.gotoWelcome();
+		welcomePage.clickHomePage();
+		plsPage.goPLSLocker();
+		extrasPage.finishExtras();
+		// get socket
+		pt2.setSocketID("paypros");
+		pt2.playPacket_Service("paypros");
+		// cutomer ID
+		plsPage.enterCustomerID();
+		ul.customWait(1);
+		endScreenPage.finish();
+		ul.customWait(2);
+
+		for (int i = 1111132; i < 1111142; i++) {
+
+			// rent pls
+
+			welcomePage.clickHomePage();
+			plsPage.goPLSLocker();
+			extrasPage.finishExtras();
+			pt2.playPacket_Service("paypros");
+			plsPage.enterCustomerID();
+			ul.customWait(1);
+			endScreenPage.finish();
+			ul.customWait(1);
+		}
+
+		// sign admin, end both rental
+		ul.customWait(1);
+		welcomePage.logInAdmin();
+		adminLogin.adminLogin("Su");
+		adminLogin.getLockerStatus();
+		adminLogin.typeLockers(null);
+		adminLogin.logOutAdmin();
+
+		for (int i = 1111131; i < 1111142; i++) {
+
+			ul.customWait(1);
+			welcomePage.clickHomePage();
+			plsPage.goMovePLS();
+			plsPage.enterCustomerID();
+			plsEndRentalPage.confirmEndPLS();
+			endScreenPage.finish();
+		}
+
+		for (int i = 13; i < 21; i++) {
+
+			// rent pls
+
+			welcomePage.clickHomePage();
+			plsPage.goSingleLocker();
+			if (i <= 12) {
+				lockersPage.selectLockerSize("Standard");
+			} else if (i > 12 && i < 17) {
+				lockersPage.selectLockerSize("Large");
+			} else {
+				lockersPage.selectLockerSize("Jumbo");
+			}
+			extrasPage.finishExtras();
+			pt2.playPacket_Service("paypros");
+			passcodePage.passCode();
+			endScreenPage.finish();
+			ul.customWait(2);
 		}
 
 	}
 
 	@Ignore
 	@Test
-	public void rentPLSTest() throws Exception {
-		// paypros and rent PLS
-
-		// start WPE listen socketID
-		pt2.listenSocketID("paypros");
-
-		wp.gotoWelcome();
-		wp.clickHomePage();
-		plp.goPLSLocker();
-		exp.finishExtras();
-		// get socket
-		pt2.setSocketID("paypros");
-		pt2.playPacket_Paypros("paypros");
-		// cutomer ID
-		plp.enterCustomerID("7777890", "1111");
-		endp.finish();
-		ul.customWait(2);
-
-		for (int i = 1111190; i < 1111209; i++) {
-
-			// rent pls
-
-			wp.clickHomePage();
-			plp.goPLSLocker();
-			exp.finishExtras();
-			pt2.playPacket_Paypros("paypros");
-			plp.enterCustomerID(Integer.toString(i), "1111");
-			endp.finish();
-			ul.customWait(2);
-		}
-	}
-	
-	@Test
 	public void rentSignleEntry() throws Exception {
 		// paypros and rent PLS
 
 		// start WPE listen socketID
-		pt2.listenSocketID("paypros");
+		pt2.listenSocketID("");
 
-		wp.gotoWelcome();
-		wp.clickHomePage();
-		plp.goSingleLocker();
-		lp.selectLockerSize("Standard");
-		exp.finishExtras();
+		welcomePage.gotoWelcome();
+		welcomePage.clickHomePage();
+		plsPage.goSingleLocker();
+		lockersPage.selectLockerSize("Standard");
+		extrasPage.finishExtras();
 		// get socket
 		pt2.setSocketID("paypros");
-		pt2.playPacket_Paypros("paypros");
+		pt2.playPacket_Service("paypros");
 		// cutomer ID
-		pcp.passCode("1111");
-		endp.finish();
+		passcodePage.passCode();
+		endScreenPage.finish();
 		ul.customWait(2);
 
-		for (int i = 2; i < 21; i++) {
+		for (int i = 13; i < 21; i++) {
 
 			// rent pls
 
-			wp.clickHomePage();
-			plp.goSingleLocker();
-			if (i<=12) {
-				lp.selectLockerSize("Standard");
+			welcomePage.clickHomePage();
+			plsPage.goSingleLocker();
+			if (i <= 12) {
+				lockersPage.selectLockerSize("Standard");
+			} else if (i > 12 && i < 17) {
+				lockersPage.selectLockerSize("Large");
+			} else {
+				lockersPage.selectLockerSize("Jumbo");
 			}
-			else if (i > 12 && i < 17  ) {
-				lp.selectLockerSize("Large");
-			}
-			else {
-				lp.selectLockerSize("Jumbo");
-			}
-			exp.finishExtras();
-			pt2.playPacket_Paypros("paypros");
-			pcp.passCode("1111");
-			endp.finish();
+			extrasPage.finishExtras();
+			pt2.playPacket_Service("paypros");
+			passcodePage.passCode();
+			endScreenPage.finish();
 			ul.customWait(2);
 		}
 	}
@@ -149,14 +189,14 @@ public class SmokeTest extends BasePage {
 		// paypros and rent PLS
 
 		// start WPE listen socketID
-		pt2.listenSocketID("paypros");
+		pt2.listenSocketID("");
 		// go to payment page
-		wp.gotoWelcome();
-		wp.clickHomePage();
-		plp.goPLSLocker();
+		welcomePage.gotoWelcome();
+		welcomePage.clickHomePage();
+		plsPage.goPLSLocker();
 		// get socket
 		pt2.setSocketID("paypros");
-		pt2.playPacket_Paypros("paypros");
+		pt2.playPacket_Service("paypros");
 
 	}
 
@@ -164,25 +204,25 @@ public class SmokeTest extends BasePage {
 	@Test
 	public void MultiPLSTest() throws Exception {
 		// issue coupon and rent PLS
-		wp.gotoWelcome();
-//		wp.logInAdmin();
-//		adp.adminLogin("2222", "4321");
-//		adp.issueCoupon("5");
-//		adp.logOutAdmin();
-//		ul.customWait(1);
-//		wp.clickHomePage();
-//		plp.goPLSLocker();
-//		exp.finishExtras();
-//		pp.redeemCoupon(SQL_JDBC.coupon("3873"));
-//		plp.enterCustomerID("1111111", "1111");
-//		endp.finish();
-//		// sign admin, end both
-//		ul.customWait(1);
-//		wp.logInAdmin();
-//		adp.adminLogin("2222", "4321");
-//		adp.getLockerStatus();
-//		adp.endRental(null);
-//		adp.logOutAdmin();
+		welcomePage.gotoWelcome();
+		// wp.logInAdmin();
+		// adp.adminLogin("2222", "4321");
+		// adp.issueCoupon("5");
+		// adp.logOutAdmin();
+		// ul.customWait(1);
+		// wp.clickHomePage();
+		// plp.goPLSLocker();
+		// exp.finishExtras();
+		// pp.redeemCoupon(SQL_JDBC.coupon("3873"));
+		// plp.enterCustomerID("1111111", "1111");
+		// endp.finish();
+		// // sign admin, end both
+		// ul.customWait(1);
+		// wp.logInAdmin();
+		// adp.adminLogin("2222", "4321");
+		// adp.getLockerStatus();
+		// adp.endRental(null);
+		// adp.logOutAdmin();
 		// move
 		for (int j = 0; j < 10; j++) {
 
@@ -190,35 +230,35 @@ public class SmokeTest extends BasePage {
 			for (int i = 0; i < 2; i++) {
 
 				ul.customWait(1);
-				wp.clickHomePage();
-				plp.goMovePLS();
-				plp.enterCustomerID("1111111", "1111");
-				pendp.confirmEndPLS();
-				endp.finish();
+				welcomePage.clickHomePage();
+				plsPage.goMovePLS();
+				plsPage.enterCustomerID();
+				plsEndRentalPage.confirmEndPLS();
+				endScreenPage.finish();
 			}
 			// sign admin, end both rental
 			ul.customWait(1);
-			wp.logInAdmin();
-			adp.adminLogin("2222", "4321");
-			adp.getLockerStatus();
-			adp.endRental(null);
-			adp.logOutAdmin();
+			welcomePage.logInAdmin();
+			adminLogin.adminLogin("Su");
+			adminLogin.getLockerStatus();
+			adminLogin.typeLockers(null);
+			adminLogin.logOutAdmin();
 
 			// move PLS one time
 			ul.customWait(1);
-			wp.clickHomePage();
-			plp.goMovePLS();
-			plp.enterCustomerID("1111111", "1111");
-			pendp.confirmEndPLS();
-			endp.finish();
+			welcomePage.clickHomePage();
+			plsPage.goMovePLS();
+			plsPage.enterCustomerID();
+			plsEndRentalPage.confirmEndPLS();
+			endScreenPage.finish();
 
 			// sign admin, end one
 			ul.customWait(1);
-			wp.logInAdmin();
-			adp.adminLogin("2222", "4321");
-			adp.getLockerStatus();
-			adp.endRental(null);
-			adp.logOutAdmin();
+			welcomePage.logInAdmin();
+			adminLogin.adminLogin("Su");
+			adminLogin.getLockerStatus();
+			adminLogin.typeLockers(null);
+			adminLogin.logOutAdmin();
 
 		}
 	}
@@ -226,7 +266,7 @@ public class SmokeTest extends BasePage {
 	@Ignore
 	@Test
 	public void RentLockerJumbo() throws Exception {
-		wp.gotoWelcome();
+		welcomePage.gotoWelcome();
 		// coupon
 
 		for (int i = 0; i < 4; i++) {
@@ -238,63 +278,63 @@ public class SmokeTest extends BasePage {
 			// adp.logOutAdmin();
 			// ul.customWait(1);
 
-			wp.clickHomePage();
-			lp.selectLockerSize("Large");
-			lp.agreePriceTC();
-			exp.finishExtras();
+			welcomePage.clickHomePage();
+			lockersPage.selectLockerSize("Large");
+			lockersPage.agreePriceTC();
+			extrasPage.finishExtras();
 
-			pp.agreeTermCondition();
+			paymentPage.agreeTermCondition();
 
-			pp.redeemCoupon(SQL_JDBC.coupon("3865"));
-			pcp.passCode("1111");
+			paymentPage.redeemCoupon("");
+			passcodePage.passCode();
 		}
 	}
 
 	@Ignore
 	@Test
 	public void RentDiscountLockerWithRFID() throws Exception {
-		wp.gotoWelcome();
+		welcomePage.gotoWelcome();
 		// start WPE listen socketID for scan and rfid
-		pt2.listenSocketID("scan");
+		pt2.listenSocketID("");
 
-		wp.clickHomePage();
+		welcomePage.clickHomePage();
 		discountPage.goGeneralDiscount();
 		// get scan socket and play
 		pt2.setSocketID("scan");
-		pt2.playPacket_Paypros("scan");
+		pt2.playPacket_Service("scan");
 
 		// select locker
-		pt2.listenSocketID("rfid");
-		lp.selectLockerSize("Standard");
-		lp.agreePriceTC();
-		exp.finishExtras();
-		pp.agreeTermCondition();
+		pt2.listenSocketID("");
+		lockersPage.selectLockerSize("Standard");
+		lockersPage.agreePriceTC();
+		extrasPage.finishExtras();
+		paymentPage.agreeTermCondition();
 
 		pt2.setSocketID("rfid");
-		pt2.playPacket_Paypros("rfid");
-		pcp.passCode("1111");
-		endp.finish();
+		pt2.playPacket_Service("rfid");
+		passcodePage.passCode();
+		endScreenPage.finish();
 
 		for (int i = 0; i < 5; i++) {
 			ul.customWait(1);
-			wp.clickHomePage();
+			welcomePage.clickHomePage();
 			discountPage.goGeneralDiscount();
-			pt2.playPacket_Paypros("scan");
+			pt2.playPacket_Service("scan");
 			if (i == 1) {
-				lp.selectLockerSize("Large");
+				lockersPage.selectLockerSize("Large");
 			} else if (i == 2) {
-				lp.selectLockerSize("Jumbo");
+				lockersPage.selectLockerSize("Jumbo");
 			} else {
-				lp.selectLockerSize("Standard");
+				lockersPage.selectLockerSize("Standard");
 			}
 
-			lp.agreePriceTC();
-			exp.finishExtras();
-			pp.agreeTermCondition();
+			lockersPage.agreePriceTC();
+			extrasPage.finishExtras();
+			paymentPage.agreeTermCondition();
 
-			pt2.playPacket_Paypros("rfid");
-			pcp.passCode("1111");
-			endp.finish();
+			pt2.playPacket_Service("rfid");
+			passcodePage.passCode();
+			endScreenPage.finish();
 
 		}
 
@@ -304,146 +344,146 @@ public class SmokeTest extends BasePage {
 	@Test
 	public void RentAllSingleLocker() throws Exception {
 
-		wp.gotoWelcome();
+		welcomePage.gotoWelcome();
 		// start WPE listen socketID for scan and rfid
-		pt2.listenSocketID("paypros");
-		wp.clickHomePage();
+		pt2.listenSocketID("");
+		welcomePage.clickHomePage();
 
-		plp.goSingleLocker();
+		plsPage.goSingleLocker();
 
-		lp.selectLockerSize("Standard");
+		lockersPage.selectLockerSize("Standard");
 
-		lp.agreePriceTC();
-		exp.finishExtras();
-		pp.agreeTermCondition();
+		lockersPage.agreePriceTC();
+		extrasPage.finishExtras();
+		paymentPage.agreeTermCondition();
 
 		pt2.setSocketID("paypros");
-		pt2.playPacket_Paypros("paypros");
+		pt2.playPacket_Service("paypros");
 
-		pcp.passCode("1111");
-		endp.finish();
+		passcodePage.passCode();
+		endScreenPage.finish();
 
 		for (int i = 2; i < 21; i++) {
 			ul.customWait(1);
-			wp.clickHomePage();
+			welcomePage.clickHomePage();
 
-			plp.goSingleLocker();
+			plsPage.goSingleLocker();
 
 			if (i <= 10) {
 
-				lp.selectLockerSize("Standard");
+				lockersPage.selectLockerSize("Standard");
 			}
 
 			else if (i > 10 && i < 18) {
-				lp.selectLockerSize("Large");
+				lockersPage.selectLockerSize("Large");
 			}
 
 			else {
-				lp.selectLockerSize("Jumbo");
+				lockersPage.selectLockerSize("Jumbo");
 			}
 
-			lp.agreePriceTC();
-			exp.finishExtras();
-			pp.agreeTermCondition();
+			lockersPage.agreePriceTC();
+			extrasPage.finishExtras();
+			paymentPage.agreeTermCondition();
 
-			pt2.playPacket_Paypros("paypros");
+			pt2.playPacket_Service("paypros");
 
-			pcp.passCode("1111");
-			endp.finish();
+			passcodePage.passCode();
+			endScreenPage.finish();
 
 		}
 
 		// sign admin, end all rental
 		ul.customWait(1);
-		wp.logInAdmin();
-		adp.adminLogin("2222", "2222");
-		adp.getLockerStatus();
-		adp.endRental(null);
-		adp.logOutAdmin();
+		welcomePage.logInAdmin();
+		adminLogin.adminLogin("Su");
+		adminLogin.getLockerStatus();
+		adminLogin.typeLockers(null);
+		adminLogin.logOutAdmin();
 
 		ul.customWait(1);
 		// PLS
-		wp.clickHomePage();
-		plp.goPLSLocker();
+		welcomePage.clickHomePage();
+		plsPage.goPLSLocker();
 		// get socket
 		pt2.setSocketID("rfid");
-		pt2.playPacket_Paypros("rfid");
+		pt2.playPacket_Service("rfid");
 		// cutomer ID
-		plp.enterCustomerID("7777890", "1111");
-		endp.finish();
+		plsPage.enterCustomerID();
+		endScreenPage.finish();
 		ul.customWait(2);
 
 		for (int i = 1111190; i < 1111200; i++) {
 
 			// rent pls
 
-			wp.clickHomePage();
-			plp.goPLSLocker();
-			pt2.playPacket_Paypros("rfid");
-			plp.enterCustomerID(Integer.toString(i), "1111");
-			endp.finish();
+			welcomePage.clickHomePage();
+			plsPage.goPLSLocker();
+			pt2.playPacket_Service("rfid");
+			plsPage.enterCustomerID();
+			endScreenPage.finish();
 			ul.customWait(2);
 		}
 
 		// sign admin, end all rental
 		ul.customWait(1);
-		wp.logInAdmin();
-		adp.adminLogin("2222", "2222");
-		adp.getLockerStatus();
-		adp.endRental(null);
-		adp.logOutAdmin();
+		welcomePage.logInAdmin();
+		adminLogin.adminLogin("Su");
+		adminLogin.getLockerStatus();
+		adminLogin.typeLockers(null);
+		adminLogin.logOutAdmin();
 
 	}
 
 	@Ignore
 	@Test
 	public void RentADASingleLocker() throws Exception {
-		wp.gotoWelcome();
+		welcomePage.gotoWelcome();
 		// start WPE listen socketID for scan and rfid
-		pt2.listenSocketID("rfid");
-		wp.clickHomePage();
-		plp.selectADA();
-		plp.goSingleLocker();
+		pt2.listenSocketID("");
+		welcomePage.clickHomePage();
+		plsPage.selectADA();
+		plsPage.goSingleLocker();
 
-		lp.selectLockerSize("Standard");
+		lockersPage.selectLockerSize("Standard");
 
-		lp.agreePriceTC();
+		lockersPage.agreePriceTC();
 		// exp.finishExtras();
-		pp.agreeTermCondition();
+		paymentPage.agreeTermCondition();
 
 		pt2.setSocketID("rfid");
-		pt2.playPacket_Paypros("rfid");
+		pt2.playPacket_Service("rfid");
 
-		pcp.passCode("1111");
-		endp.finish();
+		passcodePage.passCode();
+		endScreenPage.finish();
 
 		for (int i = 2; i < 21; i++) {
 			ul.customWait(1);
-			wp.clickHomePage();
-			plp.selectADA();
-			plp.goSingleLocker();
+			welcomePage.clickHomePage();
+			plsPage.selectADA();
+			plsPage.goSingleLocker();
 
 			if (i <= 10) {
 
-				lp.selectLockerSize("Standard");
+				lockersPage.selectLockerSize("Standard");
 			}
 
 			else if (i > 10 && i < 18) {
-				lp.selectLockerSize("Large");
+				lockersPage.selectLockerSize("Large");
 			}
 
 			else {
-				lp.selectLockerSize("Jumbo");
+				lockersPage.selectLockerSize("Jumbo");
 			}
 
-			lp.agreePriceTC();
+			lockersPage.agreePriceTC();
 			// exp.finishExtras();
-			pp.agreeTermCondition();
+			paymentPage.agreeTermCondition();
 
-			pt2.playPacket_Paypros("rfid");
+			pt2.playPacket_Service("rfid");
 
-			pcp.passCode("1111");
-			endp.finish();
+			passcodePage.passCode();
+			endScreenPage.finish();
 
 		}
 
@@ -452,15 +492,15 @@ public class SmokeTest extends BasePage {
 	@Ignore
 	@Test
 	public void Rent500LOcker() throws Exception {
-		wp.gotoWelcome();
+		welcomePage.gotoWelcome();
 		for (int i = 1; i < 500; i++) {
 			ul.customWait(1);
-			wp.clickHomePage();
-			lp.selectLockerSize("Standard");
-			lp.agreePriceTC();
-			exp.finishExtras();
-			pcp.passCode("1111");
-			endp.finish();
+			welcomePage.clickHomePage();
+			lockersPage.selectLockerSize("Standard");
+			lockersPage.agreePriceTC();
+			extrasPage.finishExtras();
+			passcodePage.passCode();
+			endScreenPage.finish();
 		}
 
 	}
@@ -468,84 +508,84 @@ public class SmokeTest extends BasePage {
 	@Ignore
 	@Test
 	public void RentDiscountLocker() throws Exception {
-		wp.gotoWelcome();
+		welcomePage.gotoWelcome();
 		// start WPE listen socketID
 
-		wp.logInAdmin();
-		adp.adminLogin("3333", "3333");
-		adp.issueCoupon("7");
-		adp.logOutAdmin();
+		welcomePage.logInAdmin();
+		adminLogin.adminLogin("Su");
+		adminLogin.issueCoupon(2);
+		adminLogin.logOutAdmin();
 		ul.customWait(1);
 
-		pt2.listenSocketID("scan");
+		pt2.listenSocketID("");
 
-		wp.clickHomePage();
+		welcomePage.clickHomePage();
 		discountPage.goGeneralDiscount();
 
 		// get socket
 		pt2.setSocketID("scan");
-		pt2.playPacket_Paypros("scan");
+		pt2.playPacket_Service("scan");
 
 		// select locker
-		lp.selectLockerSize("Standard");
-		lp.agreePriceTC();
-		exp.finishExtras();
+		lockersPage.selectLockerSize("Standard");
+		lockersPage.agreePriceTC();
+		extrasPage.finishExtras();
 
-		pp.agreeTermCondition();
+		paymentPage.agreeTermCondition();
 
-		pp.redeemCoupon(SQL_JDBC.coupon("3892"));
-		pcp.passCode("1111");
-		endp.finish();
+		paymentPage.redeemCoupon("");
+		passcodePage.passCode();
+		endScreenPage.finish();
 
 		for (int i = 0; i < 7; i++) {
 
-			wp.logInAdmin();
-			adp.adminLogin("3333", "3333");
-			adp.issueCoupon("7");
-			adp.logOutAdmin();
+			welcomePage.logInAdmin();
+			adminLogin.adminLogin("Su");
+			adminLogin.issueCoupon(2);
+			adminLogin.logOutAdmin();
 			ul.customWait(1);
 
-			wp.clickHomePage();
+			welcomePage.clickHomePage();
 			discountPage.goGeneralDiscount();
 
-			pt2.playPacket_Paypros("scan");
+			pt2.playPacket_Service("scan");
 
 			// select locker
-			lp.selectLockerSize("Standard");
-			lp.agreePriceTC();
-			exp.finishExtras();
+			lockersPage.selectLockerSize("Standard");
+			lockersPage.agreePriceTC();
+			extrasPage.finishExtras();
 
-			pp.agreeTermCondition();
+			paymentPage.agreeTermCondition();
 
-			pp.redeemCoupon(SQL_JDBC.coupon("3892"));
-			pcp.passCode("1111");
-			endp.finish();
+			paymentPage.redeemCoupon("");
+			passcodePage.passCode();
+			endScreenPage.finish();
 
 		}
 
 		for (int j = 0; j < 7; j++) {
 
-			wp.logInAdmin();
-			adp.adminLogin("3333", "3333");
-			adp.issueCoupon("10");
-			adp.logOutAdmin();
+			welcomePage.logInAdmin();
+			adminLogin.adminLogin("Su");
+			adminLogin.issueCoupon(3);
+			adminLogin.logOutAdmin();
 			ul.customWait(1);
 
-			wp.clickHomePage();
+			welcomePage.clickHomePage();
 			discountPage.goGeneralDiscount();
 
-			pt2.playPacket_Paypros("scan");
+			pt2.playPacket_Service("scan");
 
 			// select locker
-			lp.selectLockerSize("Large");
-			lp.agreePriceTC();
-			exp.finishExtras();
+			lockersPage.selectLockerSize("Large");
+			lockersPage.agreePriceTC();
+			extrasPage.finishExtras();
 
-			pp.agreeTermCondition();
+			paymentPage.agreeTermCondition();
 
-			pp.redeemCoupon(SQL_JDBC.coupon("3892"));
-			pcp.passCode("1111");
-			endp.finish();
+			paymentPage.redeemCoupon("");
+			passcodePage.passCode();
+			endScreenPage.finish();
 
 		}
 
@@ -555,13 +595,26 @@ public class SmokeTest extends BasePage {
 	@Test
 	public void IncreasedKioskAdminUser() throws Exception {
 
-		wp.gotoWelcome();
+		welcomePage.gotoWelcome();
 		// start WPE listen socketID
 
-		wp.logInAdmin();
-		adp.adminLogin("4567", "4321");
+		welcomePage.logInAdmin();
+		adminLogin.adminLogin("di");
 
-		adp.createAdminUser(200);
+		adminLogin.createAdminUser(200);
 
 	}
+
+	@Test
+	public void ContinuesTimedPLSTestSuit() throws Exception {
+		// paypros and rent PLS
+
+		// start WPE listen socketID
+		pt2.listenSocketID("");
+
+		welcomePage.gotoWelcome();
+		welcomePage.clickHomePage();
+
+	}
+
 }
